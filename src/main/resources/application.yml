@@ -1,0 +1,70 @@
+server:
+  port: 8080
+  undertow:
+    url-charset: UTF-8
+    threads:
+      io: 16
+      worker: 256
+    buffer-size: 1024
+    direct-buffers: true
+    max-http-post-size: 20MB
+
+spring:
+  application:
+    name: WeituTravel
+  profiles:
+    active: de
+  ai:
+    openai:
+      api-key:
+      base-url: https://api.deepseek.com
+      chat:
+        options:
+          model: deepseek-chat
+          temperature: 0.7
+    dashscope:
+      api-key:
+      chat:
+        options:
+          model: qwen-max
+          temperature: 0.5
+  cache:
+    type: redis
+    redis:
+      key-prefix: ${spring.application.name}
+  data:
+    redis:
+      lettuce:
+        pool:
+          enabled: true
+          max-active: 12
+          max-idle: 8
+          min-idle: 1
+          max-wait: 10000
+
+mybatis-plus:
+  mapper-locations: classpath*:/mapper/**/*.xml
+  type-aliases-package: org.myy.weitutravel.**.entity
+  configuration:
+    map-underscore-to-camel-case: true
+    cache-enabled: true
+    call-setters-on-nulls: true
+    jdbc-type-for-null: 'null'
+    log-impl: org.apache.ibatis.logging.nologging.NoLoggingImpl
+  global-config:
+    banner: true
+    db-config:
+      id-type: INPUT
+      insert-strategy: NOT_NULL
+      update-strategy: ALWAYS
+      capital-mode: true
+      logic-delete-field: delFlag
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+logging:
+  file:
+    path: /data/logs/${server.port}-${spring.application.name}
+  level:
+    root: info
+    org.myy.weitutravel: info

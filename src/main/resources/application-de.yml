@@ -1,0 +1,58 @@
+spring:
+  application:
+    name: WeituTravel-de
+  data:
+    redis:
+      host: localhost
+      port: 6379
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/travel?useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=utf8&allowPublicKeyRetrieval=true
+    username: root
+    password:
+    hikari:
+      minimum-idle: 8
+      maximum-pool-size: 12
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      leak-detection-threshold: 60000
+      pool-name: ${spring.application.name}
+#  vector:
+#    datasource:
+#      driver-class-name: org.postgresql.Driver
+#      url: pgm-uf65on0550i89mys9o.pg.rds.aliyuncs.com
+#      username: MyAgent
+#      password:
+#      hikari:
+#        maximum-pool-size: 5
+#        minimum-idle: 2
+
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+logging:
+  file:
+    path: ./logs/WeituTravel/
+
+
+retrieval:
+  hybrid:
+    vector-top-k: 5
+    bm25-top-k: 5
+    vector-weight: 0.6
+    bm25-weight: 0.4
+    relevance-threshold: 0.3
+    final-top-k: 5
+
+
+# 业务配置
+booking:
+  stock-id: 10001
+  total-stock: 500
+  redis:
+    stock-key: "stock:10001"
+    lock-key: "lock:10001"
+    lock-wait-time: 3
+    lock-lease-time: 30

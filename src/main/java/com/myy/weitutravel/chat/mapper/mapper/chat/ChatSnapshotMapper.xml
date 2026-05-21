@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.myy.weitutravel.chat.mapper.ChatSnapshotMapper">
+
+    <resultMap id="BaseResultMap" type="com.myy.weitutravel.chat.entity.ChatSnapshot">
+            <id property="id" column="id" />
+            <result property="sessionId" column="session_id" />
+            <result property="messageCount" column="message_count" />
+            <result property="checksum" column="checksum" />
+            <result property="delFlag" column="del_flag" />
+            <result property="createTime" column="create_time" />
+            <result property="updateTime" column="update_time" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,session_id,message_count,checksum,del_flag,create_time,
+        update_time,snapshot_data
+    </sql>
+</mapper>
