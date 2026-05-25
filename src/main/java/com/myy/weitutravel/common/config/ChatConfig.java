@@ -6,6 +6,7 @@ import com.myy.weitutravel.chat.mcp.tool.DocumentTool;
 import com.myy.weitutravel.chat.mcp.tool.FlightTool;
 import com.myy.weitutravel.chat.mcp.tool.HotelTool;
 import com.myy.weitutravel.chat.mcp.tool.WeatherTool;
+import com.myy.weitutravel.chat.agent.AgentAdvisor;
 import com.myy.weitutravel.chat.service.advisor.MemoryAdvisor;
 import jakarta.annotation.Resource;
 import org.springframework.ai.chat.client.ChatClient;
@@ -19,6 +20,9 @@ public class ChatConfig {
 
     @Resource
     private MemoryAdvisor memoryAdvisor;
+
+    @Resource
+    private AgentAdvisor agentAdvisor;
 
     @Resource
     private FlightTool flightTool;
@@ -61,7 +65,7 @@ public class ChatConfig {
         return ChatClient.builder(chatModel)
                 .defaultOptions(OpenAiChatOptions.builder().temperature(0.7).build())
                 .defaultTools(flightTool, weatherTool, hotelTool, documentTool)
-                .defaultAdvisors(memoryAdvisor)
+                .defaultAdvisors(agentAdvisor, memoryAdvisor)
                 .defaultSystem(SYSTEM_PROMPT)
                 .build();
     }
@@ -73,7 +77,7 @@ public class ChatConfig {
                         .temperature(0.5)
                         .build())
                 .defaultTools(flightTool, weatherTool, hotelTool, documentTool)
-                .defaultAdvisors(memoryAdvisor)
+                .defaultAdvisors(agentAdvisor, memoryAdvisor)
                 .defaultSystem(SYSTEM_PROMPT)
                 .build();
     }
