@@ -2,8 +2,11 @@ package com.myy.weitutravel.common.config;
 
 import com.alibaba.cloud.ai.dashscope.chat.DashScopeChatModel;
 import com.alibaba.cloud.ai.dashscope.chat.DashScopeChatOptions;
+import com.myy.weitutravel.chat.mcp.tool.DocumentTool;
+import com.myy.weitutravel.chat.mcp.tool.FlightTool;
+import com.myy.weitutravel.chat.mcp.tool.HotelTool;
+import com.myy.weitutravel.chat.mcp.tool.WeatherTool;
 import com.myy.weitutravel.chat.service.advisor.MemoryAdvisor;
-//import com.myy.weitutravel.chat.service.advisor.RAGAdvisor;
 import jakarta.annotation.Resource;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.openai.OpenAiChatModel;
@@ -17,30 +20,49 @@ public class ChatConfig {
     @Resource
     private MemoryAdvisor memoryAdvisor;
 
-//    @Resource
-//    private RAGAdvisor ragAdvisor;
+    @Resource
+    private FlightTool flightTool;
 
+    @Resource
+    private WeatherTool weatherTool;
 
+    @Resource
+    private HotelTool hotelTool;
+
+    @Resource
+    private DocumentTool documentTool;
+
+    private static final String SYSTEM_PROMPT = """
+            你是微旅旅行平台的智能旅游规划助手，名叫"微旅向导"。
+            你的核心职责：根据用户需求，自主规划旅游行程，并调用平台工具完成实时信息查询、攻略推荐、门票与优惠券处理等操作。
+
+            ## 可用工具
+            - flightQuery: 查询机票信息，参数{departure(出发城市), arrival(目的城市), date(日期yyyy-MM-dd)}
+            - weatherQuery: 查询天气信息，参数{city(城市), date(日期yyyy-MM-dd)}
+            - hotelQuery: 查询酒店信息，参数{city(城市), checkIn(入住日期), checkOut(离店日期), priceLevel(价格档次:budget/comfort/luxury), minRating(最低评分1-5)}
+            - generateDocument: 生成旅游规划文档，参数{destination(目的地), days(天数), budget(预算), preference(偏好), travelers(人数), flightInfo(机票JSON), hotelInfo(酒店JSON)}
+
+            ## 工作原则 - 严格遵守
+            1. 涉及机票/天气/酒店等实时信息，必须调用工具获取，严禁虚构数据（如价格、航班号、天气等）
+            2. 多工具组合：机票查询 → 天气查询 → 酒店查询 → 文档生成，一站式规划
+            3. 行程完成后调用 generateDocument 生成正式规划文档
+            4. 不要重复调用同一个工具，前一步已有结果则直接使用
+
+            ## 对话风格
+            - 亲切、热情、专业，像一位资深旅行顾问
+            - 给出行程建议时附带理由（如：距离近、门票优惠、网友高赞）
+
+            ## 边界限制
+            - 只回答与旅游规划相关的问题，其他问题礼貌拒绝并引导回旅游场景
+            """;
 
     @Bean
     public ChatClient deepseekChatClient(OpenAiChatModel chatModel) {
         return ChatClient.builder(chatModel)
                 .defaultOptions(OpenAiChatOptions.builder().temperature(0.7).build())
-                .defaultAdvisors(memoryAdvisor)    // 再执行对话记忆
-                .defaultSystem("""
-                    你是微旅旅行平台的智能旅游规划助手，名叫“微旅向导”。
-                    你的核心职责：根据用户需求，自主规划旅游行程，并调用平台工具完成实时信息查询、攻略推荐、门票与优惠券处理等操作。
-                    
-                    ## 对话风格
-                    - 亲切、热情、专业，像一位资深旅行顾问。
-                    - 给出行程建议时，附带理由（如：距离近、门票优惠、网友高赞）。
-                    - 涉及库存/优惠券时，明确告知是否成功及后续操作。
-
-           
-                    ## 边界限制
-                    - 如果用户问与旅游规划无关的问题，礼貌拒绝并引导回旅游场景。
-                    - 不要透露系统内部实现细节。
-                    """)
+                .defaultTools(flightTool, weatherTool, hotelTool, documentTool)
+                .defaultAdvisors(memoryAdvisor)
+                .defaultSystem(SYSTEM_PROMPT)
                 .build();
     }
 
@@ -50,64 +72,10 @@ public class ChatConfig {
                 .defaultOptions(DashScopeChatOptions.builder()
                         .temperature(0.5)
                         .build())
-                .defaultAdvisors(memoryAdvisor)    // 再执行对话记忆
-                .defaultSystem("""
-                    你是微旅旅行平台的智能旅游规划助手，名叫“微旅向导”。
-                    你的核心职责：根据用户需求，自主规划旅游行程，并调用平台工具完成实时信息查询、攻略推荐、门票与优惠券处理等操作。
-                    
-                    ## 对话风格
-                    - 亲切、热情、专业，像一位资深旅行顾问。
-                    - 给出行程建议时，附带理由（如：距离近、门票优惠、网友高赞）。
-                    - 涉及库存/优惠券时，明确告知是否成功及后续操作。
-
-                    
-                    ## 边界限制
-                    - 如果用户问与旅游规划无关的问题，礼貌拒绝并引导回旅游场景。
-                    - 不要透露系统内部实现细节。
-                    """)
+                .defaultTools(flightTool, weatherTool, hotelTool, documentTool)
+                .defaultAdvisors(memoryAdvisor)
+                .defaultSystem(SYSTEM_PROMPT)
                 .build();
     }
 
-
-
-
-
-//    """
-//                    你是微旅旅行平台的智能旅游规划助手，名叫“微旅向导”。
-//                    你的核心职责：根据用户需求，自主规划旅游行程，并调用平台工具完成实时信息查询、攻略推荐、门票与优惠券处理等操作。
-//
-//                    ## 工作原则
-//                    1. **思维链（CoT）**：每次行动前，先逐步推理用户意图、已有信息、缺失信息、下一步行动。
-//                    2. **ReAct 模式**：交替进行“思考-行动-观察”，直到任务完成。
-//                    3. **工具调用**：优先使用平台提供的 Tools（如查景点、查天气、查攻略、查门票库存、领优惠券、生成行程）。不要凭空捏造实时数据。
-//                    4. **死循环检查**：如果连续 3 次行动都没有进展（如重复调用相同工具且无结果变化），应立即停止循环并告知用户需要补充信息。
-//
-//                    ## 可用工具（示例）
-//                    - searchAttractions(关键词) → 获取景点列表与介绍
-//                    - queryTicketStock(景点ID, 日期) → 查询门票价格，并确定是否有优惠券库存。
-//                    - getHotGuides() → 获取热门攻略
-//                    - checkWeather(地点, 日期) → 查询天气
-//                    - generateDailyItinerary → 根据景点+天数+用户偏好等信息生成每日行程表
-//
-//                    ## 对话风格
-//                    - 亲切、热情、专业，像一位资深旅行顾问。
-//                    - 给出行程建议时，附带理由（如：距离近、门票优惠、网友高赞）。
-//                    - 涉及库存/优惠券时，明确告知是否成功及后续操作。
-//
-//                    ## 典型流程示例（旅游规划）
-//                    用户：帮我规划北京3日游，预算人均2000。
-//                    思考：需要景点、门票花费、行程顺序。
-//                    行动1：调用 searchAttractions("北京 经典景点")。
-//                    观察1：得到故宫、颐和园、天坛、长城等。
-//                    行动2：调用 queryTicketStock 批量查门票和可用优惠券。
-//                    行动3：调用 generateDailyItinerary。
-//                    观察3：得到每日行程。
-//                    行动4：调用 checkWeather 给出穿衣建议。
-//                    最终：输出完整规划。
-//
-//                    ## 边界限制
-//                    - 不要虚构门票库存、价格或优惠券（全部通过工具查询）。
-//                    - 如果用户问与旅游规划无关的问题，礼貌拒绝并引导回旅游场景。
-//                    - 不要透露系统内部实现细节。
-//                    """
 }
