@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=500">
+<title>微途旅行 - 商品·购物车·支付</title>
+<style>
+:root{--green:#07C160;--green-dark:#06AD56;--red:#FA5151;--orange:#FF9800;--bg:#F5F5F5;--card:#FFF;--text:#333;--text2:#999;--border:#E5E5E5;--r:12px;--sh:0 2px 12px rgba(0,0,0,.08)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,'PingFang SC',sans-serif;background:#E8ECF1;padding:20px;display:flex;justify-content:center;align-items:flex-start;min-height:100vh;gap:30px;flex-wrap:wrap}
+.phone{width:390px;height:844px;background:var(--bg);border-radius:40px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.15);position:relative;display:flex;flex-direction:column}
+.status-bar{min-height:44px;background:#FFF;display:flex;align-items:center;justify-content:space-between;padding:0 24px;font-size:12px;font-weight:600;color:#333}
+.status-bar .time{font-size:14px;font-weight:700}
+.nav{min-height:44px;background:#FFF;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:600;position:relative;flex-shrink:0}
+.nav .back{position:absolute;left:16px;font-size:20px;cursor:pointer;color:#333}
+.content{flex:1;overflow-y:auto;padding:0 16px 16px;scroll-behavior:smooth}
+.home-bar{min-height:34px;background:#FFF;display:flex;align-items:center;justify-content:center}
+.home-bar::after{content:'';width:134px;height:5px;background:#333;border-radius:100px}
+
+/* 通用 */
+.btn{width:100%;height:44px;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;transition:.15s;display:flex;align-items:center;justify-content:center;gap:6px}
+.btn:active{transform:scale(.97);opacity:.9}
+.btn-primary{background:var(--green);color:#FFF}
+.btn-danger{background:var(--red);color:#FFF}
+.btn-sm{width:auto;height:32px;padding:0 12px;font-size:12px;border-radius:6px;min-width:60px}
+.btn-outline-sm{width:auto;height:32px;padding:0 12px;font-size:12px;border-radius:6px;background:#FFF;color:var(--green);border:1px solid var(--green)}
+.tag{display:inline-block;padding:3px 8px;border-radius:4px;font-size:11px;font-weight:600}
+.tag-on{background:#E8F8EE;color:var(--green)}
+.tag-warn{background:#FFF3E0;color:var(--orange)}
+.tag-red{background:#FFEBEE;color:var(--red)}
+.tag-gray{background:#F0F0F0;color:#999}
+.price{color:var(--red);font-weight:700}
+.price .unit{font-size:12px}
+.price .num{font-size:20px}
+
+/* 商品卡片 */
+.product-card{background:var(--card);border-radius:var(--r);overflow:hidden;margin-bottom:12px;box-shadow:var(--sh);display:flex}
+.product-card .img{width:120px;height:120px;background:linear-gradient(135deg,#e8f5e9,#c8e6c9);display:flex;align-items:center;justify-content:center;font-size:48px;flex-shrink:0}
+.product-card .info{flex:1;padding:12px;display:flex;flex-direction:column;justify-content:space-between}
+.product-card .name{font-size:15px;font-weight:600;color:var(--text);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.product-card .desc{font-size:12px;color:var(--text2);margin-top:4px}
+.product-card .bottom{display:flex;align-items:center;justify-content:space-between;margin-top:auto}
+.product-card .sales{font-size:11px;color:var(--text2)}
+
+/* 分类标签 */
+.cat-tags{display:flex;gap:8px;padding:12px 0;overflow-x:auto;scrollbar-width:none}
+.cat-tags::-webkit-scrollbar{display:none}
+.cat-tag{padding:6px 14px;border-radius:20px;font-size:13px;white-space:nowrap;cursor:pointer;border:1px solid var(--border);background:#FFF;color:#666;transition:.2s;flex-shrink:0}
+.cat-tag.active{background:var(--green);color:#FFF;border-color:var(--green)}
+.cart-badge{position:relative}
+.cart-badge::after{content:attr(data-count);position:absolute;top:-6px;right:-10px;background:var(--red);color:#FFF;font-size:10px;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+
+/* 购物车 */
+.cart-item{background:var(--card);border-radius:var(--r);padding:12px;margin-bottom:10px;box-shadow:var(--sh);display:flex;gap:12px;align-items:center}
+.cart-check{width:22px;height:22px;border-radius:50%;border:2px solid #CCC;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:.2s;font-size:12px;color:transparent}
+.cart-check.checked{background:var(--green);border-color:var(--green);color:#FFF}
+.cart-img{width:64px;height:64px;background:linear-gradient(135deg,#e8f5e9,#c8e6c9);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0}
+.cart-info{flex:1;min-width:0}
+.cart-name{font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cart-price{font-size:16px;color:var(--red);font-weight:700;margin-top:4px}
+.cart-qty{display:flex;align-items:center;gap:0}
+.cart-qty button{width:28px;height:28px;border:1px solid var(--border);background:#FFF;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s}
+.cart-qty button:active{background:#F5F5F5}
+.cart-qty button:first-child{border-radius:6px 0 0 6px}
+.cart-qty button:last-child{border-radius:0 6px 6px 0}
+.cart-qty .qty-val{width:36px;height:28px;border-top:1px solid var(--border);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:500}
+
+/* 订单确认 */
+.section{background:var(--card);border-radius:var(--r);padding:14px 16px;margin-bottom:10px;box-shadow:var(--sh)}
+.section-title{font-size:14px;font-weight:600;color:var(--text);margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.order-item-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #F5F5F5;font-size:13px}
+.order-item-row:last-child{border-bottom:none}
+.order-total{display:flex;justify-content:space-between;align-items:center;padding-top:12px;border-top:1px solid var(--border);margin-top:12px}
+.order-total .label{font-size:15px;font-weight:600}
+.order-total .amount{font-size:22px;font-weight:700;color:var(--red)}
+
+/* 支付弹窗 */
+.modal-overlay{position:absolute;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:flex-end;z-index:10}
+.modal-sheet{width:100%;background:#FFF;border-radius:20px 20px 0 0;padding:20px 16px 30px;animation:slideUp .3s ease}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-handle{width:36px;height:4px;background:#DDD;border-radius:2px;margin:0 auto 16px}
+.pay-method{display:flex;align-items:center;gap:12px;padding:14px;border:2px solid var(--border);border-radius:8px;margin-bottom:10px;cursor:pointer;transition:.2s}
+.pay-method.selected{border-color:var(--green);background:#F0FFF5}
+.pay-method .icon{font-size:28px}
+.pay-method .name{font-size:15px;font-weight:500}
+.pay-method .check{width:20px;height:20px;border-radius:50%;border:2px solid #CCC;margin-left:auto;display:flex;align-items:center;justify-content:center;font-size:10px;color:transparent}
+.pay-method.selected .check{background:var(--green);border-color:var(--green);color:#FFF}
+
+/* 成功页 */
+.success-page{text-align:center;padding:60px 0}
+.success-icon{font-size:64px;margin-bottom:16px}
+.success-amount{font-size:28px;font-weight:700;color:var(--red);margin:8px 0}
+.info-row{display:flex;justify-content:space-between;padding:8px 0;font-size:13px}
+
+/* Tab切换 */
+.phone-tabs{display:flex;gap:0;background:#FFF;padding:0 16px}
+.phone-tab{flex:1;text-align:center;padding:10px 0;font-size:14px;font-weight:500;color:var(--text2);border-bottom:2px solid transparent;cursor:pointer;transition:.2s}
+.phone-tab.active{color:var(--green);border-bottom-color:var(--green);font-weight:600}
+
+.page{display:none;flex:1;overflow:hidden;flex-direction:column}
+.page.active{display:flex}
+
+/* Toast */
+.toast{position:absolute;top:100px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.75);color:#FFF;padding:10px 24px;border-radius:8px;font-size:14px;z-index:20;pointer-events:none;opacity:0;transition:opacity .3s}
+.toast.show{opacity:1}
+
+.label-tag{font-size:10px;color:var(--text2)}
+</style>
+</head>
+<body>
+
+<!-- ==================== 手机1: 商品列表 + 详情 ==================== -->
+<div class="phone" id="phone1">
+  <div class="status-bar"><span class="time">9:41</span><span>5G</span></div>
+  <div class="nav"><span>微途商城</span><span style="position:absolute;right:16px;font-size:24px;cursor:pointer" onclick="goCart()" class="cart-badge" data-count="2" id="cartBadge">🛒</span></div>
+
+  <div class="toast" id="toast1"></div>
+
+  <!-- 商品列表页 -->
+  <div class="page active" id="listPage">
+    <div class="content">
+      <div class="cat-tags">
+        <span class="cat-tag active" onclick="filterCat(this,'全部')">全部</span>
+        <span class="cat-tag" onclick="filterCat(this,'跟团游')">跟团游</span>
+        <span class="cat-tag" onclick="filterCat(this,'自由行')">自由行</span>
+        <span class="cat-tag" onclick="filterCat(this,'酒店')">酒店</span>
+        <span class="cat-tag" onclick="filterCat(this,'门票')">门票</span>
+        <span class="cat-tag" onclick="filterCat(this,'签证')">签证</span>
+      </div>
+
+      <!-- 商品卡片 -->
+      <div class="product-card" data-cat="跟团游" onclick="goDetail('p1')">
+        <div class="img">🏔</div>
+        <div class="info">
+          <div class="name">云南丽江大理5天4晚跟团游·玉龙雪山+洱海+古城</div>
+          <div class="desc">含往返机票+4晚五星酒店+全程导游</div>
+          <div class="bottom">
+            <span class="price"><span class="unit">¥</span><span class="num">2980</span> 起</span>
+            <span class="sales">已售 2.3w</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="product-card" data-cat="自由行" onclick="goDetail('p2')">
+        <div class="img">🏖</div>
+        <div class="info">
+          <div class="name">三亚自由行5天4晚·海棠湾度假酒店+接送机</div>
+          <div class="desc">含往返机票+海景房+亚特兰蒂斯门票</div>
+          <div class="bottom">
+            <span class="price"><span class="unit">¥</span><span class="num">3580</span> 起</span>
+            <span class="sales">已售 1.8w</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="product-card" data-cat="酒店" onclick="goDetail('p3')">
+        <div class="img">🏨</div>
+        <div class="info">
+          <div class="name">成都宽窄巷子亚朵酒店·大床房含双早</div>
+          <div class="desc">市中心位置·步行至宽窄巷子3分钟</div>
+          <div class="bottom">
+            <span class="price"><span class="unit">¥</span><span class="num">388</span> /晚</span>
+            <span class="sales">已售 8562</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="product-card" data-cat="门票" onclick="goDetail('p4')">
+        <div class="img">🏯</div>
+        <div class="info">
+          <div class="name">北京故宫博物院门票·含珍宝馆+钟表馆</div>
+          <div class="desc">需提前1天预约·刷身份证入园</div>
+          <div class="bottom">
+            <span class="price"><span class="unit">¥</span><span class="num">60</span></span>
+            <span class="sales">已售 12.8w</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="product-card" data-cat="跟团游" onclick="goDetail('p5')">
+        <div class="img">🏞</div>
+        <div class="info">
+          <div class="name">桂林阳朔3天2晚·漓江竹筏+十里画廊+西街</div>
+          <div class="desc">含高铁票+精品民宿+竹筏漂流</div>
+          <div class="bottom">
+            <span class="price"><span class="unit">¥</span><span class="num">1680</span> 起</span>
+            <span class="sales">已售 1.2w</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="product-card" data-cat="签证" onclick="goDetail('p6')">
+        <div class="img">📋</div>
+        <div class="info">
+          <div class="name">日本单次旅游签证·上海送签·简化材料</div>
+          <div class="desc">7个工作日出签·拒签退全款</div>
+          <div class="bottom">
+            <span class="price"><span class="unit">¥</span><span class="num">299</span></span>
+            <span class="sales">已售 3.6w</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 商品详情页 -->
+  <div class="page" id="detailPage">
+    <div class="nav"><span class="back" onclick="goList()">←</span><span id="detailTitle">商品详情</span></div>
+    <div class="content" style="padding-bottom:80px">
+      <div style="width:100%;height:220px;background:linear-gradient(135deg,#e8f5e9,#a5d6a7);border-radius:var(--r);display:flex;align-items:center;justify-content:center;font-size:80px;margin-bottom:16px">🏔</div>
+
+      <div class="section">
+        <div style="font-size:18px;font-weight:700;color:var(--text);line-height:1.5" id="detailName">云南丽江大理5天4晚跟团游</div>
+        <div style="display:flex;align-items:baseline;gap:8px;margin-top:12px">
+          <span class="price"><span class="unit">¥</span><span class="num" style="font-size:28px" id="detailPrice">2980</span></span>
+          <span style="font-size:13px;color:var(--text2)">起</span>
+          <span class="tag tag-on" style="margin-left:auto">上架中</span>
+        </div>
+        <div style="font-size:12px;color:var(--text2);margin-top:6px">销量 <span id="detailSales">2.3w</span> | 库存 <span id="detailStock">999</span></div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">📝 详情描述</div>
+        <div style="font-size:13px;color:#666;line-height:1.8" id="detailDesc">
+          含往返机票+4晚五星酒店+全程导游服务<br>
+          · 第1天：接机，入住丽江古城五星酒店<br>
+          · 第2天：玉龙雪山+蓝月谷+印象丽江<br>
+          · 第3天：大理古城+洱海骑行+双廊古镇<br>
+          · 第4天：崇圣寺三塔+喜洲古镇<br>
+          · 第5天：自由活动+送机
+        </div>
+      </div>
+
+      <div style="position:fixed;bottom:0;left:0;width:100%;padding:12px 16px;background:#FFF;border-top:1px solid var(--border);display:flex;gap:12px;align-items:center">
+        <button class="btn btn-primary" style="flex:1" onclick="addToCart()">加入购物车</button>
+        <button class="btn" style="flex:1;background:var(--red);color:#FFF" onclick="addToCartAndBuy()">立即购买</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="home-bar"></div>
+</div>
+
+<!-- ==================== 手机2: 购物车 ==================== -->
+<div class="phone" id="phone2">
+  <div class="status-bar"><span class="time">9:42</span><span>5G</span></div>
+  <div class="nav"><span>购物车</span><span style="position:absolute;right:16px;font-size:13px;color:var(--text2);cursor:pointer" onclick="clearCart()">清空</span></div>
+  <div class="toast" id="toast2"></div>
+
+  <div class="content" id="cartContent">
+    <!-- 动态渲染 -->
+  </div>
+
+  <!-- 底部结算栏 -->
+  <div style="background:#FFF;border-top:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;gap:12px" id="cartBar">
+    <div style="display:flex;align-items:center;gap:8px;cursor:pointer" onclick="toggleAll()">
+      <div class="cart-check" id="selectAllCheck" style="width:22px;height:22px;border-radius:50%;border:2px solid #CCC;display:flex;align-items:center;justify-content:center;font-size:12px;color:transparent">✓</div>
+      <span style="font-size:13px;color:#666">全选</span>
+    </div>
+    <div style="flex:1;text-align:right">
+      <span style="font-size:12px;color:var(--text2)">合计: </span>
+      <span class="price"><span class="unit">¥</span><span class="num" id="totalPrice">0</span></span>
+    </div>
+    <button class="btn btn-primary" style="width:auto;padding:0 20px" onclick="checkout()">结算</button>
+  </div>
+  <div class="home-bar"></div>
+</div>
+
+<!-- ==================== 手机3: 订单确认 + 支付 ==================== -->
+<div class="phone" id="phone3">
+  <div class="status-bar"><span class="time">9:43</span><span>5G</span></div>
+  <div class="nav"><span class="back" onclick="backToCart()">←</span><span>确认订单</span></div>
+  <div class="toast" id="toast3"></div>
+
+  <!-- 订单确认页 -->
+  <div class="page active" id="orderPage">
+    <div class="content">
+      <div class="section">
+        <div class="section-title">📦 商品信息</div>
+        <div id="orderItems"></div>
+      </div>
+
+      <div class="section" id="orderAmountSection"></div>
+
+      <div class="section">
+        <div class="section-title">💳 支付方式</div>
+        <div class="pay-method selected" onclick="selectPay(this,'wechat')">
+          <span class="icon">💚</span>
+          <span class="name">微信支付</span>
+          <div class="check">✓</div>
+        </div>
+        <div class="pay-method" onclick="selectPay(this,'alipay')">
+          <span class="icon">💙</span>
+          <span class="name">支付宝</span>
+          <div class="check">✓</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="background:#FFF;border-top:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;gap:12px">
+      <div style="flex:1">
+        <span style="font-size:13px;color:var(--text2)">应付: </span>
+        <span class="price"><span class="unit">¥</span><span class="num" id="orderTotal" style="font-size:22px">0</span></span>
+      </div>
+      <button class="btn btn-primary" style="width:auto;padding:0 28px" onclick="submitOrder()">提交订单</button>
+    </div>
+  </div>
+
+  <!-- 支付成功页 -->
+  <div class="page" id="successPage">
+    <div class="content">
+      <div class="success-page">
+        <div class="success-icon">✅</div>
+        <div style="font-size:20px;font-weight:700;color:var(--text)">支付成功</div>
+        <div class="success-amount" id="paidAmount">¥0.00</div>
+
+        <div class="section" style="text-align:left">
+          <div class="section-title">📋 订单信息</div>
+          <div class="info-row"><span class="label-tag">订单号</span><span style="font-size:12px;font-family:monospace" id="paidOrderId">---</span></div>
+          <div class="info-row"><span class="label-tag">支付方式</span><span style="font-size:13px" id="paidChannel">---</span></div>
+          <div class="info-row"><span class="label-tag">支付时间</span><span style="font-size:12px" id="paidTime">---</span></div>
+          <div class="info-row"><span class="label-tag">订单状态</span><span class="tag tag-on">支付成功</span></div>
+        </div>
+
+        <div style="display:flex;gap:10px;margin-top:20px">
+          <button class="btn" style="flex:1;border:1px solid var(--border);background:#FFF;color:var(--text)" onclick="backToShop()">继续逛逛</button>
+          <button class="btn btn-primary" style="flex:1" onclick="backToShop()">查看订单</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="home-bar"></div>
+</div>
+
+<!-- 右下角页面导航 -->
+<div style="position:fixed;right:20px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:8px;z-index:100;font-size:11px">
+  <button onclick="scrollToPhone(0)" style="width:36px;height:36px;border-radius:50%;border:2px solid var(--green);background:#FFF;color:var(--green);cursor:pointer;font-weight:600">商</button>
+  <button onclick="scrollToPhone(1)" style="width:36px;height:36px;border-radius:50%;border:2px solid var(--orange);background:#FFF;color:var(--orange);cursor:pointer;font-weight:600">车</button>
+  <button onclick="scrollToPhone(2)" style="width:36px;height:36px;border-radius:50%;border:2px solid var(--red);background:#FFF;color:var(--red);cursor:pointer;font-weight:600">付</button>
+</div>
+
+<script>
+// ====== 全局状态 ======
+let cart = [];
+let currentDetail = {id:'p1',name:'云南丽江大理5天4晚跟团游',price:2980,stock:999,sales:23000,desc:'含往返机票+4晚五星酒店+全程导游'};
+let selectedChannel = 'wechat';
+
+const ALL_PRODUCTS = {
+  p1:{id:'p1',name:'云南丽江大理5天4晚跟团游·玉龙雪山+洱海+古城',price:2980,stock:999,sales:23000,desc:'含往返机票+4晚五星酒店+全程导游服务<br>· 第1天：接机，入住丽江古城五星酒店<br>· 第2天：玉龙雪山+蓝月谷+印象丽江<br>· 第3天：大理古城+洱海骑行+双廊古镇<br>· 第4天：崇圣寺三塔+喜洲古镇<br>· 第5天：自由活动+送机',img:'🏔',cat:'跟团游'},
+  p2:{id:'p2',name:'三亚自由行5天4晚·海棠湾度假酒店+接送机',price:3580,stock:500,sales:18000,desc:'含往返机票+海景房+亚特兰蒂斯门票<br>· 往返直飞三亚凤凰机场<br>· 4晚海棠湾五星海景房<br>· 亚特兰蒂斯水世界门票2张<br>· 24小时专车接送机',img:'🏖',cat:'自由行'},
+  p3:{id:'p3',name:'成都宽窄巷子亚朵酒店·大床房含双早',price:388,stock:200,sales:8562,desc:'市中心位置·步行至宽窄巷子3分钟<br>· 含每日双人自助早餐<br>· 免费Mini吧+下午茶<br>· 延迟退房至14:00',img:'🏨',cat:'酒店'},
+  p4:{id:'p4',name:'北京故宫博物院门票·含珍宝馆+钟表馆',price:60,stock:5000,sales:128000,desc:'需提前1天预约·刷身份证入园<br>· 含珍宝馆+钟表馆+陶瓷馆<br>· 上午场 8:30-12:00<br>· 下午场 12:00-16:00',img:'🏯',cat:'门票'},
+  p5:{id:'p5',name:'桂林阳朔3天2晚·漓江竹筏+十里画廊+西街',price:1680,stock:300,sales:12000,desc:'含高铁票+精品民宿+竹筏漂流<br>· 第1天：高铁出发+入住阳朔民宿<br>· 第2天：漓江竹筏+兴坪古镇<br>· 第3天：十里画廊骑行+返程',img:'🏞',cat:'跟团游'},
+  p6:{id:'p6',name:'日本单次旅游签证·上海送签·简化材料',price:299,stock:9999,sales:36000,desc:'7个工作日出签·拒签退全款<br>· 简化材料：护照+照片+申请表<br>· 无需在职证明+银行流水<br>· 15天停留·3个月有效',img:'📋',cat:'签证'}
+};
+
+// ====== 商品列表 ======
+function filterCat(el, cat) {
+  document.querySelectorAll('.cat-tag').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.product-card').forEach(card=>{
+    if(cat==='全部'){card.style.display='flex';return}
+    card.style.display = card.dataset.cat===cat?'flex':'none';
+  });
+}
+
+function goDetail(pid) {
+  let p = ALL_PRODUCTS[pid];
+  currentDetail = p;
+  document.getElementById('detailTitle').textContent = '商品详情';
+  document.getElementById('detailName').textContent = p.name;
+  document.getElementById('detailPrice').textContent = p.price;
+  document.getElementById('detailStock').textContent = p.stock;
+  document.getElementById('detailSales').textContent = (p.sales/10000).toFixed(1)+'w';
+  document.getElementById('detailDesc').innerHTML = p.desc;
+  let phone = document.getElementById('phone1');
+  phone.querySelector('#listPage').classList.remove('active');
+  phone.querySelector('#detailPage').classList.add('active');
+}
+
+function goList() {
+  let phone = document.getElementById('phone1');
+  phone.querySelector('#detailPage').classList.remove('active');
+  phone.querySelector('#listPage').classList.add('active');
+}
+
+// ====== 购物车 ======
+function addToCart() {
+  let exist = cart.find(i=>i.id===currentDetail.id);
+  if (exist) {
+    exist.qty = Math.min(exist.qty+1, currentDetail.stock);
+  } else {
+    cart.push({id:currentDetail.id, name:currentDetail.name, price:currentDetail.price, img:currentDetail.img||'🏔', qty:1, selected:true, stock:currentDetail.stock});
+  }
+  updateCartBadge();
+  renderCart();
+  toast('已加入购物车', 'toast1');
+}
+
+function addToCartAndBuy() {
+  addToCart();
+  goCart();
+}
+
+function removeFromCart(pid) {
+  cart = cart.filter(i=>i.id!==pid);
+  updateCartBadge();
+  renderCart();
+}
+
+function changeQty(pid, delta) {
+  let item = cart.find(i=>i.id===pid);
+  if (!item) return;
+  let newQty = item.qty + delta;
+  if (newQty < 1) { removeFromCart(pid); return }
+  if (newQty > item.stock) { toast('库存不足', 'toast2'); return }
+  item.qty = newQty;
+  renderCart();
+}
+
+function toggleItem(pid) {
+  let item = cart.find(i=>i.id===pid);
+  if (item) { item.selected = !item.selected; }
+  renderCart();
+}
+
+function toggleAll() {
+  let anyUnselected = cart.some(i=>!i.selected);
+  cart.forEach(i=>i.selected = anyUnselected);
+  renderCart();
+}
+
+function clearCart() {
+  if (cart.length===0) return;
+  cart = [];
+  updateCartBadge();
+  renderCart();
+  toast('购物车已清空', 'toast2');
+}
+
+function updateCartBadge() {
+  let count = cart.reduce((s,i)=>s+i.qty,0);
+  let badge = document.getElementById('cartBadge');
+  badge.dataset.count = count||'';
+}
+
+function renderCart() {
+  let el = document.getElementById('cartContent');
+  if (cart.length===0) {
+    el.innerHTML = '<div style="text-align:center;padding:80px 0;color:#CCC"><div style="font-size:64px;margin-bottom:16px">🛒</div><div style="font-size:15px">购物车是空的</div><div style="font-size:12px;margin-top:4px">去商城逛逛吧～</div></div>';
+  } else {
+    el.innerHTML = cart.map(i=>`
+      <div class="cart-item">
+        <div class="cart-check ${i.selected?'checked':''}" onclick="toggleItem('${i.id}')">✓</div>
+        <div class="cart-img">${i.img}</div>
+        <div class="cart-info">
+          <div class="cart-name">${i.name}</div>
+          <div class="cart-price">¥${i.price}</div>
+        </div>
+        <div class="cart-qty">
+          <button onclick="changeQty('${i.id}',-1)">−</button>
+          <span class="qty-val">${i.qty}</span>
+          <button onclick="changeQty('${i.id}',1)">+</button>
+        </div>
+        <span style="color:#CCC;cursor:pointer;font-size:18px;margin-left:4px" onclick="removeFromCart('${i.id}')">🗑</span>
+      </div>
+    `).join('');
+  }
+  updateCartBar();
+}
+
+function updateCartBar() {
+  let selected = cart.filter(i=>i.selected);
+  let total = selected.reduce((s,i)=>s+i.price*i.qty, 0);
+  document.getElementById('totalPrice').textContent = total;
+  let allSelected = cart.length>0 && cart.every(i=>i.selected);
+  let check = document.getElementById('selectAllCheck');
+  if (cart.length===0) { check.style.background='#FFF'; check.style.borderColor='#CCC'; check.style.color='transparent' }
+  else if (allSelected) { check.style.background='#07C160'; check.style.borderColor='#07C160'; check.style.color='#FFF' }
+  else { check.style.background='#FFF'; check.style.borderColor='#CCC'; check.style.color='transparent' }
+}
+
+function goCart() {
+  renderCart();
+  document.getElementById('phone2').scrollIntoView({behavior:'smooth'});
+  goList(); // 回到列表
+}
+
+// ====== 结算 → 订单确认 ======
+let currentOrder = null;
+
+function checkout() {
+  let selected = cart.filter(i=>i.selected);
+  if (selected.length===0) { toast('请选择要结算的商品', 'toast2'); return }
+
+  // 渲染订单确认页
+  document.getElementById('orderItems').innerHTML = selected.map(i=>`
+    <div class="order-item-row">
+      <span style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:20px">${i.img}</span>
+        <span style="font-size:13px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${i.name}</span>
+        <span style="color:var(--text2)">×${i.qty}</span>
+      </span>
+      <span style="font-size:13px;font-weight:500">¥${(i.price*i.qty).toLocaleString()}</span>
+    </div>
+  `).join('');
+
+  let total = selected.reduce((s,i)=>s+i.price*i.qty, 0);
+  document.getElementById('orderTotal').textContent = total;
+  document.getElementById('orderAmountSection').innerHTML = `
+    <div class="section-title">💰 费用明细</div>
+    <div class="order-item-row"><span>商品金额</span><span>¥${total.toLocaleString()}.00</span></div>
+    <div class="order-item-row"><span>优惠</span><span style="color:var(--red)">-¥0.00</span></div>
+    <div class="order-total"><span class="label">合计</span><span class="amount">¥${total.toLocaleString()}.00</span></div>
+  `;
+
+  // Jump to order phone
+  document.getElementById('phone3').scrollIntoView({behavior:'smooth'});
+  document.getElementById('orderPage').classList.add('active');
+  document.getElementById('successPage').classList.remove('active');
+}
+
+function backToCart() {
+  document.getElementById('phone2').scrollIntoView({behavior:'smooth'});
+}
+
+function selectPay(el, channel) {
+  selectedChannel = channel;
+  el.parentElement.querySelectorAll('.pay-method').forEach(m=>m.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function submitOrder() {
+  let selected = cart.filter(i=>i.selected);
+  if (selected.length===0) return;
+  let total = selected.reduce((s,i)=>s+i.price*i.qty, 0);
+  let orderId = 'ORD' + Date.now().toString(36).toUpperCase();
+
+  // Remove purchased from cart
+  cart = cart.filter(i=>!i.selected);
+  updateCartBadge();
+  renderCart();
+
+  // Show success
+  document.getElementById('paidAmount').textContent = '¥' + total.toLocaleString() + '.00';
+  document.getElementById('paidOrderId').textContent = orderId;
+  document.getElementById('paidChannel').textContent = selectedChannel==='wechat'?'微信支付':'支付宝';
+  document.getElementById('paidTime').textContent = new Date().toLocaleString('zh-CN');
+
+  document.getElementById('orderPage').classList.remove('active');
+  document.getElementById('successPage').classList.add('active');
+
+  toast('支付成功！', 'toast3');
+}
+
+function backToShop() {
+  document.getElementById('phone1').scrollIntoView({behavior:'smooth'});
+  let phone = document.getElementById('phone3');
+  phone.querySelector('#successPage').classList.remove('active');
+  phone.querySelector('#orderPage').classList.add('active');
+}
+
+// ====== Utils ======
+function scrollToPhone(i) {
+  document.querySelectorAll('.phone')[i].scrollIntoView({behavior:'smooth'});
+}
+
+function toast(msg, id) {
+  let t = document.getElementById(id);
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._t);
+  t._t = setTimeout(()=>t.classList.remove('show'), 1800);
+}
+
+// init
+renderCart();
+</script>
+</body>
+</html>

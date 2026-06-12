@@ -146,6 +146,7 @@ CREATE TABLE `t_message` (
                            KEY `idx_create_time` (`create_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='对话消息表';
 
+
 -- 会话记忆快照表（用于快速恢复）
 CREATE TABLE `t_snapshot` (
                             `id` VARCHAR(32) NOT NULL COMMENT '快照ID，快照表主键',
