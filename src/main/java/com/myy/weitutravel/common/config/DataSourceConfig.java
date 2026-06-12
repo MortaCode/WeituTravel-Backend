@@ -25,7 +25,7 @@ public class DataSourceConfig {
         HikariDataSource dataSource = new HikariDataSource();
         dataSource.setJdbcUrl("jdbc:mysql://localhost:3306/travel?useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=utf8&allowPublicKeyRetrieval=true");
         dataSource.setUsername("root");
-        dataSource.setPassword("");
+        dataSource.setPassword("187369");
         dataSource.setDriverClassName("com.mysql.cj.jdbc.Driver");
         return dataSource;
         //return DataSourceBuilder.create().type(HikariDataSource.class).build();
@@ -44,7 +44,7 @@ public class DataSourceConfig {
 //        HikariDataSource dataSource = new HikariDataSource();
 //        dataSource.setJdbcUrl("jdbc:postgresql://pgm-uf65on0550i89mys9o.pg.rds.aliyuncs.com:5432/MyAgent");
 //        dataSource.setUsername("MyAgent");
-//        dataSource.setPassword("");
+//        dataSource.setPassword("Ju187369");
 //        dataSource.setDriverClassName("org.postgresql.Driver");
 //        return dataSource;
 //    }

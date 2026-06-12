@@ -1,4 +1,4 @@
-package com.myy.weitutravel.user.vo;
+package com.myy.weitutravel.login.vo;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;

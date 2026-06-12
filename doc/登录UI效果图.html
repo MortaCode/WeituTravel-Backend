@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>微途旅行 - 登录</title>
+<style>
+  :root { --primary: #07C160; --primary-dark: #06AD56; --bg: #F5F5F5; --card: #FFF; --text: #333; --text-secondary: #999; --border: #E5E5E5; --danger: #FA5151; --radius: 12px; --shadow: 0 2px 12px rgba(0,0,0,.08); }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', sans-serif; background: #E8ECF1; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+  .phone { width: 390px; height: 844px; background: var(--bg); border-radius: 40px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,.15); position: relative; }
+  .status-bar { height: 44px; background: #FFF; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; font-size: 12px; font-weight: 600; color: #333; }
+  .status-bar .time { font-size: 14px; font-weight: 700; }
+  .status-icons { display: flex; gap: 6px; align-items: center; font-size: 11px; }
+  .nav { height: 44px; background: #FFF; display: flex; align-items: center; justify-content: center; font-size: 17px; font-weight: 600; position: relative; }
+  .nav .back { position: absolute; left: 16px; font-size: 20px; cursor: pointer; color: #333; }
+  .content { height: calc(844px - 88px - 34px); overflow-y: auto; padding: 0 20px; }
+  .home-bar { height: 34px; background: #FFF; display: flex; align-items: center; justify-content: center; }
+  .home-bar::after { content: ''; width: 134px; height: 5px; background: #333; border-radius: 100px; }
+
+  /* 通用组件 */
+  .logo-area { text-align: center; padding: 40px 0 32px; }
+  .logo { width: 72px; height: 72px; background: linear-gradient(135deg, #07C160 0%, #06AD56 100%); border-radius: 18px; display: inline-flex; align-items: center; justify-content: center; font-size: 36px; color: #FFF; margin-bottom: 12px; box-shadow: 0 8px 24px rgba(7,193,96,.25); }
+  .app-name { font-size: 22px; font-weight: 700; color: #333; }
+  .app-slogan { font-size: 13px; color: #999; margin-top: 4px; }
+
+  .card { background: var(--card); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; box-shadow: var(--shadow); }
+  .card-title { font-size: 15px; font-weight: 600; color: #333; margin-bottom: 16px; }
+  .input-group { margin-bottom: 14px; }
+  .input-label { font-size: 13px; color: #666; margin-bottom: 6px; display: block; }
+  .input-row { display: flex; gap: 10px; align-items: center; }
+  .input { flex: 1; height: 44px; border: 1px solid var(--border); border-radius: 8px; padding: 0 14px; font-size: 15px; color: #333; outline: none; transition: border-color .2s; background: #FAFAFA; }
+  .input:focus { border-color: var(--primary); background: #FFF; }
+  .input::placeholder { color: #CCC; }
+
+  .btn { width: 100%; height: 48px; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all .2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+  .btn-primary { background: linear-gradient(135deg, #07C160, #06AD56); color: #FFF; }
+  .btn-primary:active { transform: scale(.98); opacity: .9; }
+  .btn-ghost { background: #FFF; color: #07C160; border: 1px solid #07C160; }
+  .btn-ghost:active { background: #F0FFF5; }
+  .btn-sm { width: auto; height: 44px; min-width: 110px; font-size: 13px; border-radius: 8px; padding: 0 12px; flex-shrink: 0; }
+  .btn-outline { background: #FFF; color: #07C160; border: 1px solid #07C160; }
+  .btn-outline:active { background: #F0FFF5; }
+  .btn-outline.counting { color: #999; border-color: #CCC; background: #F5F5F5; }
+
+  .divider { display: flex; align-items: center; gap: 16px; margin: 24px 0; color: #CCC; font-size: 12px; }
+  .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: #E5E5E5; }
+
+  .wechat-btn { background: #07C160; color: #FFF; }
+  .wechat-btn:active { background: #06AD56; transform: scale(.98); }
+  .wechat-icon { font-size: 20px; }
+
+  /* 微信授权模拟 */
+  .auth-card { text-align: center; padding: 24px 16px; }
+  .auth-icon { width: 56px; height: 56px; background: #07C160; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 28px; color: #FFF; margin-bottom: 16px; }
+  .auth-title { font-size: 17px; font-weight: 600; color: #333; margin-bottom: 8px; }
+  .auth-desc { font-size: 13px; color: #999; line-height: 1.6; margin-bottom: 20px; }
+  .auth-perms { text-align: left; background: #F8F8F8; border-radius: 8px; padding: 14px 16px; margin-bottom: 20px; }
+  .auth-perm { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #666; padding: 6px 0; }
+  .auth-perm .dot { width: 6px; height: 6px; background: #07C160; border-radius: 50%; flex-shrink: 0; }
+
+  /* 状态标签 */
+  .tag { display: inline-block; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+  .tag-success { background: #E8F8EE; color: #07C160; }
+  .tag-warning { background: #FFF3E0; color: #FF9800; }
+  .tag-default { background: #F0F0F0; color: #999; }
+
+  /* 成功页 */
+  .success-page { text-align: center; padding: 60px 0; }
+  .success-icon { width: 64px; height: 64px; background: #E8F8EE; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 32px; margin-bottom: 20px; }
+  .success-title { font-size: 20px; font-weight: 700; color: #333; margin-bottom: 8px; }
+  .success-sub { font-size: 14px; color: #999; margin-bottom: 32px; }
+  .user-info { text-align: left; }
+
+  .info-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #F5F5F5; font-size: 14px; }
+  .info-row .label { color: #999; }
+  .info-row .value { color: #333; font-weight: 500; }
+
+  /* 切换Tab */
+  .tab-bar { display: none; gap: 12px; margin-bottom: 20px; }
+  .tab { flex: 1; height: 40px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 500; border-radius: 8px; cursor: pointer; transition: all .2s; }
+  .tab.active { background: #E8F8EE; color: #07C160; }
+  .tab:not(.active) { background: #FFF; color: #999; }
+
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* Toast */
+  .toast { position: absolute; top: 100px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,.75); color: #FFF; padding: 10px 24px; border-radius: 8px; font-size: 14px; z-index: 10; pointer-events: none; opacity: 0; transition: opacity .3s; }
+  .toast.show { opacity: 1; }
+
+  /* 流程指示器 */
+  .flow-indicator { position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,.8); color: #FFF; padding: 6px 16px; border-radius: 20px; font-size: 12px; z-index: 5; pointer-events: none; white-space: nowrap; }
+</style>
+</head>
+<body>
+
+<div class="phone" id="phone">
+  <div class="status-bar"><span class="time">9:41</span><span class="status-icons">5G ▮▮▮▮ 🔋</span></div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <!-- ==================== 页面1: 登录首页 ==================== -->
+  <div class="page active" id="page-home">
+    <div class="nav"><span>登录</span></div>
+    <div class="content">
+      <div class="logo-area">
+        <div class="logo">✈</div>
+        <div class="app-name">微途旅行</div>
+        <div class="app-slogan">AI 智能旅行助手 · 让出行更简单</div>
+      </div>
+
+      <!-- 手机号登录区 -->
+      <div class="card">
+        <div class="card-title">📱 手机号登录</div>
+        <div class="input-group">
+          <label class="input-label">手机号</label>
+          <input class="input" type="tel" id="phoneInput" placeholder="请输入手机号" maxlength="11" value="13812345678">
+        </div>
+        <div class="input-group">
+          <label class="input-label">验证码</label>
+          <div class="input-row">
+            <input class="input" type="text" id="smsInput" placeholder="请输入验证码" maxlength="6">
+            <button class="btn btn-sm btn-outline" id="sendSmsBtn" onclick="sendSms()">获取验证码</button>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="phoneLogin()" style="margin-top:4px">登录 / 注册</button>
+        <div style="text-align:center;margin-top:10px;font-size:12px;color:#999">未注册手机号将自动创建账号</div>
+      </div>
+
+      <div class="divider">其他登录方式</div>
+
+      <button class="btn wechat-btn" onclick="goWechatAuth()">
+        <span class="wechat-icon">💬</span> 微信登录
+      </button>
+    </div>
+  </div>
+
+  <!-- ==================== 页面2: 微信授权模拟 ==================== -->
+  <div class="page" id="page-auth">
+    <div class="nav"><span class="back" onclick="goHome()">←</span><span>微信登录</span></div>
+    <div class="content">
+      <div class="logo-area" style="padding-top:20px">
+        <div class="logo" style="background:#07C160;border-radius:50%;font-size:28px">💬</div>
+        <div class="app-name" style="font-size:17px">微途旅行</div>
+        <div class="app-slogan">申请获取你的微信信息</div>
+      </div>
+
+      <div class="card auth-card">
+        <div class="auth-icon">🔐</div>
+        <div class="auth-title">微信授权登录</div>
+        <div class="auth-desc">授权后，我们将获取你的微信 OpenID<br>用于账号绑定和快速登录</div>
+        <div class="auth-perms">
+          <div class="auth-perm"><span class="dot"></span>获取你的公开信息（昵称、头像）</div>
+          <div class="auth-perm"><span class="dot"></span>获取你的 OpenID（用于账号识别）</div>
+        </div>
+        <div style="display:flex;gap:10px">
+          <button class="btn btn-ghost" style="flex:1" onclick="goHome()">拒绝</button>
+          <button class="btn wechat-btn" style="flex:1" onclick="simulateWechatCallback()">同意授权</button>
+        </div>
+      </div>
+      <div style="text-align:center;font-size:11px;color:#CCC;margin-top:8px">
+        模拟微信 OAuth2 授权页
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 页面3: 首次绑定手机号 ==================== -->
+  <div class="page" id="page-bind">
+    <div class="nav"><span class="back" onclick="goHome()">←</span><span>绑定手机号</span></div>
+    <div class="content">
+      <div class="logo-area" style="padding-top:24px">
+        <div class="logo" style="background:#07C160;border-radius:50%;font-size:24px">🔗</div>
+        <div class="app-name">绑定手机号</div>
+        <div class="app-slogan">首次微信登录，需要绑定手机号完成注册</div>
+      </div>
+
+      <div class="card">
+        <div style="display:flex;align-items:center;gap:8px;padding:10px 14px;background:#F0FFF5;border-radius:8px;margin-bottom:16px;font-size:13px;color:#07C160">
+          ✅ 微信授权成功 &nbsp;<span class="tag tag-success">已获取 OpenID</span>
+        </div>
+        <div class="input-group">
+          <label class="input-label">手机号</label>
+          <input class="input" type="tel" id="bindPhoneInput" placeholder="请输入手机号" maxlength="11" value="13812345678">
+        </div>
+        <div class="input-group">
+          <label class="input-label">短信验证码</label>
+          <div class="input-row">
+            <input class="input" type="text" id="bindSmsInput" placeholder="请输入验证码" maxlength="6">
+            <button class="btn btn-sm btn-outline" id="bindSmsBtn" onclick="sendBindSms()">获取验证码</button>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="bindPhone()" style="margin-top:4px">绑定并登录</button>
+        <div style="text-align:center;margin-top:10px;font-size:12px;color:#999">
+          已有账号则自动绑定 · 无账号则自动注册
+        </div>
+      </div>
+
+      <div style="background:#FFF;border-radius:var(--radius);padding:14px 16px;box-shadow:var(--shadow);margin-bottom:16px">
+        <div style="font-size:13px;color:#666;margin-bottom:10px">📋 此步骤会完成：</div>
+        <div style="font-size:12px;color:#999;line-height:2">
+          ① 验证手机号归属<br>
+          ② 若手机号已有账号 → 绑定微信到已有账号<br>
+          ③ 若手机号无账号 → 创建新账号并绑定微信
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 页面4: 手机号登录成功 ==================== -->
+  <div class="page" id="page-phone-success">
+    <div class="nav"><span>登录成功</span></div>
+    <div class="content">
+      <div class="success-page">
+        <div class="success-icon">✅</div>
+        <div class="success-title">登录成功</div>
+        <div class="success-sub">欢迎回到微途旅行</div>
+
+        <div class="card user-info">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid #F5F5F5">
+            <div style="width:48px;height:48px;background:linear-gradient(135deg,#07C160,#06AD56);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#FFF;font-size:20px;font-weight:600">5678</div>
+            <div>
+              <div style="font-weight:600;font-size:16px;color:#333">用户5678</div>
+              <div style="font-size:12px;color:#999">手机号登录</div>
+            </div>
+          </div>
+          <div class="info-row"><span class="label">用户ID</span><span class="value" style="font-family:monospace;font-size:12px">a1b2c3d4...</span></div>
+          <div class="info-row"><span class="label">手机号</span><span class="value">138****5678</span></div>
+          <div class="info-row"><span class="label">登录方式</span><span class="value"><span class="tag tag-success">手机号</span></span></div>
+          <div class="info-row"><span class="label">登录时间</span><span class="value" style="font-size:12px" id="loginTime"></span></div>
+        </div>
+
+        <button class="btn btn-primary" onclick="goHome()" style="margin-top:20px">进入首页</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 页面5: 微信登录成功 ==================== -->
+  <div class="page" id="page-wechat-success">
+    <div class="nav"><span>登录成功</span></div>
+    <div class="content">
+      <div class="success-page">
+        <div class="success-icon" style="background:#E8F8EE">✅</div>
+        <div class="success-title">登录成功</div>
+        <div class="success-sub">微信账号已绑定</div>
+
+        <div class="card user-info">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid #F5F5F5">
+            <div style="width:48px;height:48px;background:linear-gradient(135deg,#07C160,#06AD56);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#FFF;font-size:20px;font-weight:600">5678</div>
+            <div>
+              <div style="font-weight:600;font-size:16px;color:#333">用户5678</div>
+              <div style="font-size:12px;color:#999">微信登录</div>
+            </div>
+          </div>
+          <div class="info-row"><span class="label">用户ID</span><span class="value" style="font-family:monospace;font-size:12px">a1b2c3d4...</span></div>
+          <div class="info-row"><span class="label">手机号</span><span class="value">138****5678</span></div>
+          <div class="info-row"><span class="label">登录方式</span><span class="value"><span class="tag success">微信</span></span></div>
+          <div class="info-row"><span class="label">微信 OpenID</span><span class="value" style="font-family:monospace;font-size:11px">oZx1w5...</span></div>
+          <div class="info-row"><span class="label">绑定状态</span><span class="value"><span class="tag tag-success">已绑定</span></span></div>
+          <div class="info-row"><span class="label">登录时间</span><span class="value" style="font-size:12px" id="wxLoginTime"></span></div>
+        </div>
+
+        <button class="btn btn-primary" onclick="goHome()" style="margin-top:20px">进入首页</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="home-bar"></div>
+  <div class="flow-indicator" id="flowHint"></div>
+</div>
+
+<!-- 页面选择器 -->
+<div style="position:fixed;right:20px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:8px;z-index:100">
+  <button onclick="showPage('home')" style="width:40px;height:40px;border-radius:50%;border:2px solid #07C160;background:#FFF;color:#07C160;cursor:pointer;font-size:14px;font-weight:600" title="登录首页">1</button>
+  <button onclick="showPage('auth')" style="width:40px;height:40px;border-radius:50%;border:2px solid #07C160;background:#FFF;color:#07C160;cursor:pointer;font-size:14px;font-weight:600" title="微信授权">2</button>
+  <button onclick="showPage('bind')" style="width:40px;height:40px;border-radius:50%;border:2px solid #07C160;background:#FFF;color:#07C160;cursor:pointer;font-size:14px;font-weight:600" title="绑定手机">3</button>
+  <button onclick="showPage('phone-success')" style="width:40px;height:40px;border-radius:50%;border:2px solid #FF9800;background:#FFF;color:#FF9800;cursor:pointer;font-size:14px;font-weight:600" title="手机号登录成功">📱</button>
+  <button onclick="showPage('wechat-success')" style="width:40px;height:40px;border-radius:50%;border:2px solid #07C160;background:#FFF;color:#07C160;cursor:pointer;font-size:14px;font-weight:600" title="微信登录成功">💬</button>
+</div>
+
+<script>
+const FLOW_HINTS = {
+  home: '← 手机验证码登录 / 微信授权登录 入口',
+  auth: '← 微信 OAuth2 授权中间页（用户点"同意授权"）',
+  bind: '← 首次微信登录，输入手机号 + 验证码完成绑定',
+  'phone-success': '→ 手机号登录成功，session 已建立',
+  'wechat-success': '→ 微信登录成功（已绑定用户直接登录）',
+};
+
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  document.getElementById('flowHint').textContent = FLOW_HINTS[name] || '';
+
+  if (name === 'phone-success') {
+    document.getElementById('loginTime').textContent = new Date().toLocaleString('zh-CN');
+  }
+  if (name === 'wechat-success') {
+    document.getElementById('wxLoginTime').textContent = new Date().toLocaleString('zh-CN');
+  }
+}
+
+function goHome() { showPage('home'); }
+
+function goWechatAuth() {
+  let phone = document.getElementById('phoneInput').value;
+  if (!/^1[3-9]\d{9}$/.test(phone) && phone !== '') {
+    showToast('请先输入正确的手机号');
+    return;
+  }
+  showPage('auth');
+}
+
+function simulateWechatCallback() {
+  showToast('微信授权成功，检查绑定状态...');
+  setTimeout(() => {
+    // 模拟"未绑定"场景：跳到绑定页
+    if (Math.random() > 0.5) {
+      showPage('bind');
+    } else {
+      showPage('wechat-success');
+    }
+  }, 800);
+}
+
+// 验证码倒计时
+let smsTimer = null;
+function startCountdown(btn) {
+  let sec = 60;
+  btn.classList.add('counting');
+  btn.disabled = true;
+  btn.textContent = sec + 's 后重发';
+  smsTimer = setInterval(() => {
+    sec--;
+    btn.textContent = sec + 's 后重发';
+    if (sec <= 0) {
+      clearInterval(smsTimer);
+      btn.classList.remove('counting');
+      btn.disabled = false;
+      btn.textContent = '获取验证码';
+    }
+  }, 1000);
+}
+
+function sendSms() {
+  let phone = document.getElementById('phoneInput').value;
+  if (!/^1[3-9]\d{9}$/.test(phone)) { showToast('请输入正确的手机号'); return; }
+  showToast('验证码已发送 → 888888（模拟）');
+  startCountdown(document.getElementById('sendSmsBtn'));
+}
+
+function sendBindSms() {
+  let phone = document.getElementById('bindPhoneInput').value;
+  if (!/^1[3-9]\d{9}$/.test(phone)) { showToast('请输入正确的手机号'); return; }
+  showToast('验证码已发送 → 888888（模拟）');
+  startCountdown(document.getElementById('bindSmsBtn'));
+}
+
+function phoneLogin() {
+  let phone = document.getElementById('phoneInput').value;
+  let sms = document.getElementById('smsInput').value;
+  if (!/^1[3-9]\d{9}$/.test(phone)) { showToast('请输入正确的手机号'); return; }
+  if (!sms) { showToast('请输入验证码'); return; }
+  showToast('验证通过，登录中...');
+  setTimeout(() => showPage('phone-success'), 600);
+}
+
+function bindPhone() {
+  let phone = document.getElementById('bindPhoneInput').value;
+  let sms = document.getElementById('bindSmsInput').value;
+  if (!/^1[3-9]\d{9}$/.test(phone)) { showToast('请输入正确的手机号'); return; }
+  if (!sms) { showToast('请输入验证码'); return; }
+  showToast('绑定成功，登录中...');
+  setTimeout(() => showPage('wechat-success'), 600);
+}
+
+function showToast(msg) {
+  let t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._timeout);
+  t._timeout = setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+showPage('home');
+</script>
+</body>
+</html>

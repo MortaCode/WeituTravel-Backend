@@ -47,6 +47,25 @@ retrieval:
     final-top-k: 5
 
 
+# MCP 工具 API 配置
+mcp:
+  api:
+    weather:
+      base-url: https://api.open-meteo.com          # Open-Meteo 免费天气API
+      geo-base-url: https://geocoding-api.open-meteo.com  # 地理编码API
+    flight:
+      base-url: https://api.aviationstack.com/v1    # AviationStack 免费机票API
+      api-key:   # 从 https://aviationstack.com/signup/free 免费获取
+    hotel:
+      auth-url: https://test.api.amadeus.com/v1/security/oauth2/token  # Amadeus 认证
+      base-url: https://test.api.amadeus.com        # Amadeus 免费测试API
+      hotel-list-url: https://test.api.amadeus.com/v2/shopping/hotel-offers
+      api-key:     # 从 https://developers.amadeus.com/register 免费注册获取
+      api-secret:  # Amadeus API Secret
+    http:
+      connect-timeout: 10
+      read-timeout: 30
+
 # 业务配置
 booking:
   stock-id: 10001
@@ -56,3 +75,38 @@ booking:
     lock-key: "lock:10001"
     lock-wait-time: 3
     lock-lease-time: 30
+
+# 微信配置
+wechat:
+  # 小程序
+  app-id:
+  app-secret:
+  code2session-url: https://api.weixin.qq.com/sns/jscode2session
+  # 开放平台（网页/App）
+  open:
+    app-id:     # 开放平台 AppID
+    app-secret: # 开放平台 AppSecret
+    # 授权页地址：qrconnect(扫码) / authorize(公众号内)
+    authorize-url: https://open.weixin.qq.com/connect/qrconnect
+    access-token-url: https://api.weixin.qq.com/sns/oauth2/access_token
+    # 微信授权后的回调地址（需在开放平台配置为授权回调域）
+    callback-url: https://your-domain.com/login/wechat/callback
+    scope: snsapi_userinfo
+  # 通用
+  connect-timeout: 5
+  read-timeout: 10
+  max-retry: 2
+
+# 短信服务配置
+sms:
+  provider: aliyun     # 短信服务商：aliyun
+  aliyun:
+    access-key-id:     # 阿里云 AccessKey ID
+    access-key-secret: # 阿里云 AccessKey Secret
+    sign-name:         # 短信签名
+    template-code:     # 短信模板CODE（模板内容示例：您的验证码为${code}，5分钟内有效）
+    endpoint: dysmsapi.aliyuncs.com
+  rate-limit:
+    per-minute: 1
+    per-hour: 5
+    per-day: 10

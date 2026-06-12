@@ -6,16 +6,6 @@ CREATE DATABASE IF NOT EXISTS `travel`
 -- 使用数据库
 USE `travel`;
 
-
--- 用户表
-create table if not exists user
-(
-    id       varchar(32)
-        primary key,
-    username varchar(128) not null
-);
-
-
 -- 订单主表：状态机核心
 CREATE TABLE `t_order` (
                            `id` VARCHAR(32) NOT NULL COMMENT '主键',
